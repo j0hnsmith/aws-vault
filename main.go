@@ -33,6 +33,8 @@ func run(args []string, exit func(int)) {
 	cli.ConfigureRemoveCommand(app)
 	cli.ConfigureLoginCommand(app)
 	cli.ConfigureServerCommand(app)
+	cli.ConfigureAddYubikeyCommand(app)
+	cli.ConfigureRemoveYubikeyCommand(app)
 
 	kingpin.MustParse(app.Parse(args))
 }

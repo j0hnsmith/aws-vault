@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/99designs/aws-vault/mfa"
+	"github.com/99designs/aws-vault/mfa/device/yubikey"
 	"github.com/99designs/aws-vault/prompt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -39,12 +41,39 @@ func (m *Mfa) GetMfaToken() (*string, error) {
 	}
 
 	if m.MfaPromptMethod != "" {
-		promptFunc := prompt.Method(m.MfaPromptMethod)
-		token, err := promptFunc(fmt.Sprintf("Enter token for %s: ", m.MfaSerial))
+		// try yubikey first
+		token, err := m.otpFromYubikey(m.MfaSerial)
+
+		if err != nil {
+			// unable to get otp from yubikey, prompt user
+			promptFunc := prompt.Method(m.MfaPromptMethod)
+			token, err = promptFunc(fmt.Sprintf("Enter token for %s: ", m.MfaSerial))
+		}
 		return aws.String(token), err
 	}
 
 	return nil, errors.New("No prompt found")
+}
+
+// otpFromYubikey attempts to get an otp from a yubikey, obviously will fail when no yubikey or not configured.
+func (m *Mfa) otpFromYubikey(serial string) (string, error) {
+	// try to get otp from yubikey
+	name, err := mfa.SerialToName(&serial)
+	if err != nil {
+		return "", err
+	}
+
+	token, err := yubikey.New()
+	if err != nil {
+		return "", err
+	}
+
+	otp, err := token.GetOTP(time.Now(), name)
+	if err != nil {
+		return "", err
+	}
+
+	return otp, nil
 }
 
 // NewMasterCredentialsProvider creates a provider for the master credentials

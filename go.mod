@@ -9,9 +9,12 @@ require (
 	github.com/aws/aws-sdk-go v1.25.37
 	github.com/google/go-cmp v0.3.1
 	github.com/keybase/go-keychain v0.0.0-20191114153608-ccd67945d59e // indirect
+	github.com/mdp/qrterminal v1.0.1
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/pkg/errors v0.8.1
 	github.com/skratchdot/open-golang v0.0.0-20190402232053-79abb63cd66e
 	github.com/smartystreets/goconvey v1.6.4 // indirect
+	github.com/yawn/ykoath v1.0.3
 	golang.org/x/crypto v0.0.0-20191117063200-497ca9f6d64f
 	golang.org/x/sys v0.0.0-20191118133127-cf1e2d577169 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
