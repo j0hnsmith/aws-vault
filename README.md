@@ -1,5 +1,26 @@
 # AWS Vault
 
+> ## Yubikey support fork
+>
+> This fork adds Yubikey support (in the `feature/add_yubikey` branch). 
+>
+>[ Yubikey usage](#yubikey).
+>
+> ### Mac
+>
+> I build and use it on a mac, but it requires `CGO` (I have had to install some c dependencies too but don't recall what they were now). It works well, I use it nearly every day (`aws-vault login <profile>` is particularly nice).
+>
+> Unfortunately you need to build it yourself and sign it with a self signed certificate otherwise accessing the data in keychain involves lots of annoying password prompts, see [build/sign instructions](#macos-code-signing). I don't have an apple developer account so can't provide a signed version.
+>
+> ### Other architectures
+>
+> It may work on other architectures but building will probably require `CGO` and some dependencies.
+>
+> ### Merge upstream
+>
+> Due to the `CGO` requirement and dependencies it's unlikely this fork can be merged into the upstream project any time soon.
+
+
 AWS Vault is a tool to securely store and access AWS credentials in a development environment.
 
 AWS Vault stores IAM credentials in your operating system's secure keystore and then generates temporary credentials from those to expose to your shell and applications. It's designed to be complementary to the AWS CLI tools, and is aware of your [profiles and configuration in `~/.aws/config`](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files).
@@ -51,6 +72,26 @@ jonsmith                 jonsmith                 -
 ```
 See the [USAGE](./USAGE.md) document for more help and tips.
 
+#### Yubikey
+
+Yubikey is supported, but not required, as a MFA device. Remove any existing MFA device on your account before attempting to add a Yubikey.
+
+```
+# Add your Yubikey (with optional require touch)
+$ aws-vault add-yubikey <aws username> <profile> --touch
+```
+
+IMPORTANT: Use the QR code output with a virtual MFA app, such as Google Authenticator, to provide a way to get a OTP should your Yubikey be unavailable for any reason. Open Yubico Authenticator to see the added config.
+
+Once added, commands that require a OTP, eg `exec`, will get one from your Yubikey *for any profile that has the same `mfa_serial=arn:aws:iam::123456789012:mfa/jonsmith` as the profile used when adding the Yubikey* (see [assuming-roles](#assuming-roles)).
+
+To login to the aws console you'll need to use Yubico Authenticator (or the app you scanned the QR code with) to generate a OTP as the [AWS SDK doesn't support U2F](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_u2f_supported_configurations.html#id_credentials_mfa_u2f_cliapi) (TOTP is used as a fallback, but that requires a code to be entered for console login). If you _really_ want to use your Yubkey for U2F when logging in to the console, setup 2 IAM users, one using U2F for use with the console and one using TOTP for commandline usage (AWS only allows 1 MFA device per IAM user). A possible alternative is to simply rely on `aws-vault login <profile>`.
+
+```
+# Remove Yubikey (for all profiles that use the same mfa_serial)
+$ aws-vault exec <profile>
+$ aws-vault remove-yubikey <aws username> <profile>
+```
 
 ## Security
 ```bash
@@ -128,3 +169,4 @@ If you are developing or compiling the aws-vault binary yourself, you can [gener
  * https://github.com/realestate-com-au/credulous
  * https://github.com/dump247/aws-mock-metadata
  * https://boto.readthedocs.org/en/latest/boto_config_tut.html
+ * https://github.com/kreuzwerker/awsu

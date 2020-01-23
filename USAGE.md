@@ -404,39 +404,24 @@ arguments from the wrapper to the original command.
 
 ### Using a yubikey as a virtual MFA 
 
-There's been attempts in the past to support yubikeys natively (#392 , #230) there's another way to go
-at this problem. [Newer](https://support.yubico.com/support/solutions/articles/15000006419-using-your-yubikey-with-authenticator-codes) 
-yubikeys support generating TOTP tokens.
+Remove any existing MFA device on your account before attempting to add a Yubikey.
 
-In this [blog](https://hackernoon.com/use-a-yubikey-as-a-mfa-device-to-replace-google-authenticator-b4f4c0215f2) you can 
-find information about this process but it boils down to this.
-
-1. Go to AWS and click on add a MFA
-2. Choose a virtual device
-3. Instead of scanning the code you can get it as text (keep it safe).
-4. Install [ykman](https://support.yubico.com/support/solutions/articles/15000012643-yubikey-manager-cli-ykman-user-manual#Introductionmrzmm1)
-5. Run this: 
-
-```bash 
-ykman oath add YOUR_YUBIKEY_PROFILE -t
 ```
-It will ask you for a base32 text. Here you can input the text you got in 3.
-
-6. Run this command twice (wait 30 secs in between):
-```bash 
-ykman oath code --single YOUR_YUBIKEY_PROFILE
+# Add your Yubikey (with optional require touch)
+$ aws-vault add-yubikey <aws username> <profile> --touch
 ```
 
-Input both values as tokens and your device should register as a virtual MFA.
+IMPORTANT: Use the QR code output with a virtual MFA app, such as Google Authenticator, to provide a way to get a OTP should your Yubikey be unavailable for any reason. Open Yubico Authenticator to see the added config.
 
+Once added, commands that require a OTP, eg `exec`, will get one from your Yubikey *for any profile that has the same `mfa_serial=arn:aws:iam::123456789012:mfa/jonsmith` as the profile used when adding the Yubikey* (see [assuming-roles](#assuming-roles)).
 
-7. Now if you want to run any aws-vault command you should run this: 
-```bash 
-aws-vault exec --mfa-token $(ykman oath code --single ${YOUR_YUBIKEY_PROFILE}) ${YOUR_AWS_VAULT_PROFILE} -- aws s3 ls
+To login to the aws console you'll need to use Yubico Authenticator (or the app you scanned the QR code with) to generate a OTP as the [AWS SDK doesn't support U2F](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_u2f_supported_configurations.html#id_credentials_mfa_u2f_cliapi) (TOTP is used as a fallback, but that requires a code to be entered for console login). If you _really_ want to use your Yubkey for U2F when logging in to the console, setup 2 IAM accounts, one using U2F for use with the console and one using TOTP for commandline usage (AWS only allows 1 MFA device per IAM account).
+
 ```
-
-[Here](https://gist.github.com/chtorr/0ecc8fca27a4c5e186c636c262cc4757) There're some helper scripts for this.
-
+# Remove Yubikey (for all profiles that use the same mfa_serial)
+$ aws-vault exec <profile>
+$ aws-vault remove-yubikey <aws username> <profile>
+```
 
 ### An example config to switch profiles via environment variables
 
