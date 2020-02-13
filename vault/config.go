@@ -297,8 +297,8 @@ func (cl *ConfigLoader) populateFromConfigFile(config *Config, profileName strin
 		config.SourceProfileName = psection.SourceProfile
 	}
 
-	if psection.ParentProfile != "" {
-		err := cl.populateFromConfigFile(config, psection.ParentProfile)
+	if psection.SourceProfile != "" {
+		err := cl.populateFromConfigFile(config, psection.SourceProfile)
 		if err != nil {
 			return err
 		}
