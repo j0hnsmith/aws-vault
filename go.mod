@@ -12,6 +12,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/skratchdot/open-golang v0.0.0-20190402232053-79abb63cd66e
 	github.com/smartystreets/goconvey v1.6.4 // indirect
+	github.com/yawn/ykoath v1.0.4
 	golang.org/x/crypto v0.0.0-20200210222208-86ce3cb69678
 	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
